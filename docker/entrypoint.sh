@@ -30,14 +30,6 @@ if [ ! -d "$EP/archives/$ID/cfg" ]; then
   cat > $R/cfg/cfg.d/00_flavour.pl <<EOP
 \$c->{flavour} = 'pub';
 EOP
-  cat > $R/cfg/cfg.d/10_core.pl <<EOP
-\$c->{host} = '$HOST';
-\$c->{port} = '$PORT';
-\$c->{aliases} = [];
-\$c->{securehost} = '';
-\$c->{secureport} = 443;
-\$c->{http_root} = undef;
-EOP
   cat > $R/cfg/cfg.d/adminemail.pl <<EOP
 \$c->{adminemail} = '$ADMIN_EMAIL';
 EOP
@@ -67,8 +59,29 @@ EOP
   as_ep "bin/generate_views $ID" || true
 fi
 
+# Tulis ulang 10_core.pl tiap start supaya perubahan host/port berlaku
+write_core() {
+  local f=$EP/archives/$ID/cfg/cfg.d/10_core.pl
+  {
+    echo "\$c->{host} = '$HOST';"
+    echo "\$c->{port} = $PORT;"
+    echo "\$c->{aliases} = [${EPRINTS_ALIASES:-}];"
+    if [ -n "${EPRINTS_SECUREHOST:-}" ]; then
+      echo "\$c->{securehost} = '$EPRINTS_SECUREHOST';"
+      echo "\$c->{secureport} = ${EPRINTS_SECUREPORT:-443};"
+    else
+      echo "\$c->{securehost} = '';"
+      echo "\$c->{secureport} = 443;"
+    fi
+    echo "\$c->{http_root} = undef;"
+  } > "$f"
+  chown eprints:eprints "$f"
+}
+write_core
+
 # Selalu regenerate config apache (host/port bisa berubah)
 as_ep "bin/generate_apacheconf --replace" || true
+as_ep "bin/generate_static $ID" >/dev/null || true
 
 echo "Include $EP/cfg/apache.conf" > /etc/apache2/conf-enabled/eprints.conf
 a2enmod perl >/dev/null 2>&1 || true
