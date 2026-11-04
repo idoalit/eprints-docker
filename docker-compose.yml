@@ -25,7 +25,7 @@ services:
     environment:
       EPRINTS_ARCHIVE_ID: kariadi
       EPRINTS_HOST: 123.231.148.148
-      EPRINTS_PORT: "80"
+      EPRINTS_PORT: "8080"
       # Isi jika proxy publik memakai HTTPS:
       # EPRINTS_SECUREHOST: 123.231.148.148
       # EPRINTS_SECUREPORT: "443"
@@ -39,7 +39,7 @@ services:
       DB_USER: eprints
       DB_PASS: eprints
     ports:
-      - "8080:80"
+      - "8080:8080"
     volumes:
       - eprints_archives:/opt/eprints3/archives
 
